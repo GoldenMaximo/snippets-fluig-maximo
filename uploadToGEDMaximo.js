@@ -1,5 +1,10 @@
+////////////////////////////////////////////// README /////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////// Snippet Máximo 2019 /////////////////////////////////////////
-// Sobe arquivos no GED. Mexa em nada, ignore TODO o código, mude apenas o nome da sua empresa no toast
+
+// Sobe arquivos no GED. Mexa em nada, só copiar e colar, mude apenas o nome da sua empresa no toast.
+// CTRL+C / CTRL+V total.
+
 // Para utilizá-lo:
 
 // uploadToGEDAndReturnItsDownloadURL(seu-arquivo-inteiro, id-da-pasta-onde-o-arquivo-vai);
@@ -7,8 +12,13 @@
 // Pode me citar no código também se tiver boa vontade, github.com/GoldenMaximo/snippets-fluig-maximo
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const saveDocumentAPI = ((file, parentId) => new Promise((resolve, reject) => {
+
+/////////////////////////////////////////////// Código ////////////////////////////////////////////////
+
+// API 1: Grava documento no GED
+const saveDocument = ((file, parentId) => new Promise((resolve, reject) => {
   const documentPack = {
       description: file.name,
       parentId,
@@ -31,8 +41,17 @@ const saveDocumentAPI = ((file, parentId) => new Promise((resolve, reject) => {
   });
 }));
 
-const uploadToGEDAndReturnItsDownloadURL = (file, parentId) => new Promise((resolve, reject) => {
+// API 2: Retorno URL do documento gravado no GED
+const getDocumentDownloadURL = (documentId => new Promise((resolve, reject) => {
+    fetch(window.location.origin + '/api/public/2.0/documents/getDownloadURL/' + documentId).then(response => response.json()).then((data) => {
+        resolve(data);
+    }).catch((error) => {
+        reject(error);
+    });
+}));
 
+// Função: Grava documento no GED e retorna URL de visualização/download
+const uploadToGEDAndReturnItsDownloadURL = (file, parentId) => new Promise((resolve, reject) => {
   // Mostra loading
   FLUIGC.loading(window).show();
 
@@ -43,13 +62,14 @@ const uploadToGEDAndReturnItsDownloadURL = (file, parentId) => new Promise((reso
       method: 'POST',
       body: data,
   }).then(() => {
-      saveDocumentAPI(file, parentId).then((documentData) => {
-          // Pega downloadURL através da api de pegar downloadURL
+      // Grava documento no GED e retorna o documentId gerado.
+      saveDocument(file, parentId).then((documentData) => {
 
+          // Pega URL do documento através da API downloadURL
           getDocumentDownloadURL(documentData.content.id).then((downloadURL) => {
 
+              // Encerra loading
               FLUIGC.loading(window).hide();
-              //Depois de ter carregado ele acaba o Loading..//
               resolve(downloadURL);
 
           }).catch((error) => {
